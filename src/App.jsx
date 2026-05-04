@@ -1,122 +1,89 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState,useEffect } from "react";
+import CoinCard from "./components/CoinCard";
+import Filter from "./components/Filter";
+import SortSelect from "./components/SortSelect";
+//CG-tSzcJ43dJNF8DL9T1RWPYgea
+// const API_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&x_cg_demo_api_key=CG-tSzcJ43dJNF8DL9T1RWPYgea";
+const API_URL = import.meta.env.VITE_API_URL;
+const API_KEY = import.meta.env.VITE_API_KEY;
+const App = () => {
+  const [coins, setCoins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [limit, setLimit] = useState(10);
+  const [filter, setFilter] = useState("");
+  const [sort, setSort] = useState("market_cap_desc");
 
-function App() {
-  const [count, setCount] = useState(0)
+  useEffect(() => {
+      const fetchData = async () => { 
+        try {
+          const response = await fetch(`${API_URL}&order=${sort}&per_page=${limit}&page=1&sparkline=false&x_cg_demo_api_key=${API_KEY}`);
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const data = await response.json();
+          setCoins(data);
+        }
+        catch (error) {
+          setError(error.message);
+        }
+        finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
+  }, [limit, sort]);
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  const filteredCoins = coins.filter(coin =>
+    coin.name.toLowerCase().includes(filter.toLowerCase()) ||
+    coin.symbol.toLowerCase().includes(filter.toLowerCase())
+  ).slice()
+  .sort((a, b) => {
+    switch (sort) {
+      case "price_desc":
+        return b.current_price - a.current_price;
+      case "price_asc":
+        return a.current_price - b.current_price;
+      case "change_desc":
+        return b.price_change_percentage_24h - a.price_change_percentage_24h;
+      case "change_asc":
+        return a.price_change_percentage_24h - b.price_change_percentage_24h;
+        case "market_cap_asc":
+          return a.market_cap - b.market_cap; 
+        case "market_cap_desc":
+           return b.market_cap - a.market_cap;
+      default:
+        return 0; // No sorting for market_cap_desc as it's already sorted by API
+    }
+  });
+  return ( 
+    <div>
+      <h1>🚀 Crypto Dash</h1>
+      {loading && <p>Loading...</p>}
+      {error && <p className="error">{error}</p>}
+      <div className="top-controls">
+        <Filter filter={filter} setFilter={setFilter} />
+        <div className="controls">
+        <label htmlFor="limit">Show:</label>
+        <select id="limit" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select> 
+      </div>
+      <SortSelect sort={sort} setSort={setSort} />
+      </div>
+      {!loading && !error && (
+      <main className="grid">
+        {filteredCoins.length>0?filteredCoins.map((coin) => (
+          <CoinCard key={coin.id} coin={coin} />
+        )):<p>No coins match</p>}
+      </main>
+        
+        )}
+    </div>
+   );
 }
-
-export default App
+ 
+export default App;
