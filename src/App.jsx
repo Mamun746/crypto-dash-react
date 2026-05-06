@@ -1,7 +1,13 @@
 import { useState,useEffect } from "react";
-import CoinCard from "./components/CoinCard";
-import Filter from "./components/Filter";
-import SortSelect from "./components/SortSelect";
+import HomePage from "./pages/home";
+import {Routes,Route} from "react-router";
+import AboutPage from "./pages/about";
+import Header from "./components/Header";
+import NotFound from "./pages/not-found";
+import CoinDetails from "./pages/coin-details";
+// import CoinCard from "./components/CoinCard";
+// import Filter from "./components/Filter";
+// import SortSelect from "./components/SortSelect";
 //CG-tSzcJ43dJNF8DL9T1RWPYgea
 // const API_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&x_cg_demo_api_key=CG-tSzcJ43dJNF8DL9T1RWPYgea";
 const API_URL = import.meta.env.VITE_API_URL;
@@ -34,55 +40,17 @@ const App = () => {
       fetchData();
   }, [limit, sort]);
 
-  const filteredCoins = coins.filter(coin =>
-    coin.name.toLowerCase().includes(filter.toLowerCase()) ||
-    coin.symbol.toLowerCase().includes(filter.toLowerCase())
-  ).slice()
-  .sort((a, b) => {
-    switch (sort) {
-      case "price_desc":
-        return b.current_price - a.current_price;
-      case "price_asc":
-        return a.current_price - b.current_price;
-      case "change_desc":
-        return b.price_change_percentage_24h - a.price_change_percentage_24h;
-      case "change_asc":
-        return a.price_change_percentage_24h - b.price_change_percentage_24h;
-        case "market_cap_asc":
-          return a.market_cap - b.market_cap; 
-        case "market_cap_desc":
-           return b.market_cap - a.market_cap;
-      default:
-        return 0; // No sorting for market_cap_desc as it's already sorted by API
-    }
-  });
+  
   return ( 
-    <div>
-      <h1>🚀 Crypto Dash</h1>
-      {loading && <p>Loading...</p>}
-      {error && <p className="error">{error}</p>}
-      <div className="top-controls">
-        <Filter filter={filter} setFilter={setFilter} />
-        <div className="controls">
-        <label htmlFor="limit">Show:</label>
-        <select id="limit" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-          <option value={50}>50</option>
-          <option value={100}>100</option>
-        </select> 
-      </div>
-      <SortSelect sort={sort} setSort={setSort} />
-      </div>
-      {!loading && !error && (
-      <main className="grid">
-        {filteredCoins.length>0?filteredCoins.map((coin) => (
-          <CoinCard key={coin.id} coin={coin} />
-        )):<p>No coins match</p>}
-      </main>
-        
-        )}
-    </div>
+    <>
+      <Header />
+      <Routes>
+        <Route path="/" element={<HomePage coins={coins} filter={filter} sort={sort} limit={limit} loading={loading} error={error} setSort={setSort} setFilter={setFilter} setLimit={setLimit} />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/coin/:id" element={<CoinDetails />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
    );
 }
  
