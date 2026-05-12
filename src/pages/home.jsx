@@ -1,6 +1,7 @@
 import CoinCard from "../components/CoinCard";
 import Filter from "../components/Filter";
 import SortSelect from "../components/SortSelect";
+import Spinner from "../components/Spinner";
 
 const HomePage = ({coins,filter,sort,limit,loading,error,setSort,setFilter,setLimit}) => {
 
@@ -29,7 +30,7 @@ const HomePage = ({coins,filter,sort,limit,loading,error,setSort,setFilter,setLi
     return (  
 <div>
       <h1>🚀 Crypto Dash</h1>
-      {loading && <p>Loading...</p>}
+      {loading && <Spinner />}
       {error && <p className="error">{error}</p>}
       <div className="top-controls">
         <Filter filter={filter} setFilter={setFilter} />
